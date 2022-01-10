@@ -1,13 +1,13 @@
 {
   "name": "reinspect",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Use redux devtools to inspect useState and useReducer hooks",
   "files": [
     "dist"
   ],
   "main": "dist/index.js",
   "module": "dist/reinspect.esm.js",
-  "typings": "dist/index.d.ts",
+  "typings": "types/index.d.ts",
   "repository": "git@github.com:troch/reinspect.git",
   "author": "Thomas Roch <thomas.c.roch@gmail.com>",
   "license": "MIT",
