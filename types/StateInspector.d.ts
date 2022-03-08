@@ -1,11 +1,6 @@
+import { EnhancerOptions } from "@redux-devtools/extension";
 import React from "react";
-declare global {
-    interface Window {
-        __REDUX_DEVTOOLS_EXTENSION__?: any;
-    }
-}
-interface StateInspectorProps {
-    name?: string;
+interface StateInspectorProps extends EnhancerOptions {
     initialState?: any;
 }
 export declare const StateInspector: React.FC<StateInspectorProps>;
