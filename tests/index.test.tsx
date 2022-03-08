@@ -4,7 +4,17 @@ import { shallow, mount } from "enzyme"
 
 const Wrapper: React.FC = ({ children }) => {
   return (
-    <StateInspector name="Test">
+    <StateInspector
+      name="Test"
+      serialize={{
+        replacer: (_, value) => {
+          if (value instanceof HTMLElement) {
+            return `<${value.nodeName.toLowerCase()} />`
+          }
+          return value
+        }
+      }}
+    >
       <div className="hello" />
       {children}
     </StateInspector>
