@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useContext, useReducer as useReducer$1, useState as useState$1 } from 'react';
+import React, { useEffect, useContext, useReducer as useReducer$1, useState as useState$1, useMemo } from 'react';
 import { createStore } from 'redux';
 
 function _extends() {
@@ -19,7 +19,33 @@ function _extends() {
   return _extends.apply(this, arguments);
 }
 
+function _objectWithoutPropertiesLoose(source, excluded) {
+  if (source == null) return {};
+  var target = {};
+  var sourceKeys = Object.keys(source);
+  var key, i;
+
+  for (i = 0; i < sourceKeys.length; i++) {
+    key = sourceKeys[i];
+    if (excluded.indexOf(key) >= 0) continue;
+    target[key] = source[key];
+  }
+
+  return target;
+}
+
 var StateInspectorContext = /*#__PURE__*/React.createContext(undefined);
+
+var _excluded = ["name", "initialState", "actionsDenylist"],
+    _excluded2 = ["children"];
+// method on the window, it registers it with the extension. In Strict Mode, this will
+// happen **twice** during development, regardless of if you use `useMemo` or `useState` or
+// try and workaround it with a ref, showing two instances of your app in the extension.
+// Using a module-scope variable requires that this component only be used once globally,
+// otherwise it won't create the store.
+
+var registered = false;
+var store;
 
 var omit = function omit(obj, keyToRemove) {
   return Object.keys(obj).filter(function (key) {
@@ -30,62 +56,76 @@ var omit = function omit(obj, keyToRemove) {
   }, {});
 };
 
-var StateInspector = function StateInspector(_ref) {
-  var name = _ref.name,
+var createReinspectStore = function createReinspectStore(_ref) {
+  var _ref$name = _ref.name,
+      name = _ref$name === void 0 ? "React state" : _ref$name,
       _ref$initialState = _ref.initialState,
       initialState = _ref$initialState === void 0 ? {} : _ref$initialState,
-      children = _ref.children;
-  var store = useMemo(function () {
-    if (typeof window === "undefined" || !window.__REDUX_DEVTOOLS_EXTENSION__) {
-      return undefined;
-    }
+      actionsDenylist = _ref.actionsDenylist,
+      options = _objectWithoutPropertiesLoose(_ref, _excluded);
 
-    var registeredReducers = {};
+  if (typeof window === "undefined" || !window.__REDUX_DEVTOOLS_EXTENSION__) {
+    return undefined;
+  }
 
-    var storeReducer = function storeReducer(state, action) {
-      var actionReducerId = action.type.split("/")[0];
-      var isInitAction = /\/_init$/.test(action.type);
-      var isTeardownAction = /\/_teardown$/.test(action.type);
-      var currentState = isTeardownAction ? omit(state, actionReducerId) : _extends({}, state);
-      return Object.keys(registeredReducers).reduce(function (acc, reducerId) {
-        var reducer = registeredReducers[reducerId];
-        var reducerState = state[reducerId];
-        var reducerAction = action.payload;
-        var isForCurrentReducer = actionReducerId === reducerId;
+  var registeredReducers = {};
 
-        if (isForCurrentReducer) {
-          acc[reducerId] = isInitAction ? action.payload : reducer(reducerState, reducerAction);
-        } else {
-          acc[reducerId] = reducerState;
-        }
+  var storeReducer = function storeReducer(state, action) {
+    var actionReducerId = action.type.split("/")[0];
+    var isInitAction = /\/_init$/.test(action.type);
+    var isTeardownAction = /\/_teardown$/.test(action.type);
+    var currentState = isTeardownAction ? omit(state, actionReducerId) : _extends({}, state);
+    return Object.keys(registeredReducers).reduce(function (acc, reducerId) {
+      var reducer = registeredReducers[reducerId];
+      var reducerState = state[reducerId];
+      var reducerAction = action.payload;
+      var isForCurrentReducer = actionReducerId === reducerId;
 
-        return acc;
-      }, currentState);
-    };
+      if (isForCurrentReducer) {
+        acc[reducerId] = isInitAction ? action.payload : reducer(reducerState, reducerAction);
+      } else {
+        acc[reducerId] = reducerState;
+      }
 
-    var store = createStore(storeReducer, initialState, window.__REDUX_DEVTOOLS_EXTENSION__({
-      name: name || "React state",
-      actionsBlacklist: ["/_init", "/_teardown"]
-    }));
+      return acc;
+    }, currentState);
+  };
 
-    store.registerHookedReducer = function (reducer, initialState, reducerId) {
-      registeredReducers[reducerId] = reducer;
+  var store = createStore(storeReducer, initialState, window.__REDUX_DEVTOOLS_EXTENSION__(_extends({
+    name: name,
+    actionsDenylist: ["/_init", "/_teardown"].concat(actionsDenylist != null ? actionsDenylist : [])
+  }, options)));
+
+  store.registerHookedReducer = function (reducer, initialState, reducerId) {
+    registeredReducers[reducerId] = reducer;
+    store.dispatch({
+      type: reducerId + "/_init",
+      payload: initialState
+    });
+    return function () {
+      delete registeredReducers[reducerId];
       store.dispatch({
-        type: reducerId + "/_init",
-        payload: initialState
+        type: reducerId + "/_teardown"
       });
-      return function () {
-        delete registeredReducers[reducerId];
-        store.dispatch({
-          type: reducerId + "/_teardown"
-        });
-      };
     };
+  };
 
-    return store;
-  }, []);
+  return store;
+};
+
+var StateInspector = function StateInspector(_ref2) {
+  var children = _ref2.children,
+      props = _objectWithoutPropertiesLoose(_ref2, _excluded2);
+
+  if (!registered) {
+    store = createReinspectStore(props);
+    registered = true;
+  }
+
   useEffect(function () {
-    store && store.dispatch({
+    var _store;
+
+    (_store = store) == null ? void 0 : _store.dispatch({
       type: "REINSPECT/@@INIT",
       payload: {}
     });
