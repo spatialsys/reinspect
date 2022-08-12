@@ -18,7 +18,7 @@
     "lint": "tsdx lint src tests"
   },
   "dependencies": {
-    "@redux-devtools/extension": "^3.2.2",
+    "@redux-devtools/extension": "^3.2.3",
     "redux": "^4.0.5"
   },
   "devDependencies": {
@@ -30,7 +30,6 @@
     "enzyme": "~3.9.0",
     "enzyme-adapter-react-16": "~1.12.1",
     "husky": "^4.2.3",
-    "patch-package": "^6.4.7",
     "react": "~16.8.6",
     "react-dom": "~16.8.6",
     "react-test-renderer": "~16.8.2",
