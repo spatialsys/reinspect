@@ -9,13 +9,14 @@ import {
   ReducerState,
   ReducerAction
 } from "react"
-import { StateInspectorContext, EnhancedStore } from "./context"
+import { StateInspectorContext, EnhancedStore, ReducerOptions } from "./context"
 
 export function useHookedReducer<S, A>(
   reducer: Reducer<S, A>,
   initialState: S,
   store: EnhancedStore,
-  reducerId: string | number
+  reducerId: string | number,
+  options: ReducerOptions = {}
 ): [S, Dispatch<A>] {
   const [initialReducerState] = useState(() => {
     const initialStateInStore = store.getState()[reducerId]
@@ -50,7 +51,8 @@ export function useHookedReducer<S, A>(
     const teardown = store.registerHookedReducer(
       reducer,
       initialReducerState,
-      reducerId
+      reducerId,
+      options
     )
     let lastReducerState = localState
     const unsubscribe = store.subscribe(() => {

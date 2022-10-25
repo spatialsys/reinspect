@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import { useHookedReducer } from "./useReducer"
 import { useMemo, useContext, useState as useReactState } from "react"
-import { EnhancedStore, StateInspectorContext } from "./context"
+import { EnhancedStore, ReducerOptions, StateInspectorContext } from "./context"
 
 type StateAction<S> = S | ((s: S) => S)
 
@@ -11,7 +11,8 @@ function stateReducer<S>(state: S, action: StateAction<S>): S {
 
 export const useState = <S>(
   initialState: S | (() => S),
-  id: string | number
+  id: string | number,
+  options: ReducerOptions = {}
 ) => {
   const inspectorStore = useContext(StateInspectorContext)
   // Keeping the first values
@@ -35,6 +36,7 @@ export const useState = <S>(
     stateReducer,
     finalInitialState,
     store,
-    reducerId
+    reducerId,
+    options
   )
 }

@@ -96,7 +96,7 @@ var createReinspectStore = function createReinspectStore(_ref) {
     actionsDenylist: ["/_init", "/_teardown"].concat(actionsDenylist != null ? actionsDenylist : [])
   }, options)));
 
-  store.registerHookedReducer = function (reducer, initialState, reducerId) {
+  store.registerHookedReducer = function (reducer, initialState, reducerId, options) {
     registeredReducers[reducerId] = reducer;
     store.dispatch({
       type: reducerId + "/_init",
@@ -104,9 +104,12 @@ var createReinspectStore = function createReinspectStore(_ref) {
     });
     return function () {
       delete registeredReducers[reducerId];
-      store.dispatch({
-        type: reducerId + "/_teardown"
-      });
+
+      if (options.teardownOnUnmount) {
+        store.dispatch({
+          type: reducerId + "/_teardown"
+        });
+      }
     };
   };
 
@@ -136,7 +139,11 @@ var StateInspector = function StateInspector(_ref2) {
 };
 
 /* eslint-disable react-hooks/rules-of-hooks */
-function useHookedReducer(reducer, initialState, store, reducerId) {
+function useHookedReducer(reducer, initialState, store, reducerId, options) {
+  if (options === void 0) {
+    options = {};
+  }
+
   var _useState = useState$1(function () {
     var initialStateInStore = store.getState()[reducerId];
     return initialStateInStore === undefined ? initialState : initialStateInStore;
@@ -165,7 +172,7 @@ function useHookedReducer(reducer, initialState, store, reducerId) {
       dispatch = _useState3[0];
 
   var _useState4 = useState$1(function () {
-    var teardown = store.registerHookedReducer(reducer, initialReducerState, reducerId);
+    var teardown = store.registerHookedReducer(reducer, initialReducerState, reducerId, options);
     var lastReducerState = localState;
     var unsubscribe = store.subscribe(function () {
       var storeState = store.getState();
@@ -214,7 +221,11 @@ function stateReducer(state, action) {
   return typeof action === "function" ? action(state) : action;
 }
 
-var useState = function useState(initialState, id) {
+var useState = function useState(initialState, id, options) {
+  if (options === void 0) {
+    options = {};
+  }
+
   var inspectorStore = useContext(StateInspectorContext); // Keeping the first values
 
   var _useMemo = useMemo(function () {
@@ -230,7 +241,7 @@ var useState = function useState(initialState, id) {
   var finalInitialState = useMemo(function () {
     return typeof initialState === "function" ? initialState() : initialState;
   }, []);
-  return useHookedReducer(stateReducer, finalInitialState, store, reducerId);
+  return useHookedReducer(stateReducer, finalInitialState, store, reducerId, options);
 };
 
 export { StateInspector, useReducer, useState };

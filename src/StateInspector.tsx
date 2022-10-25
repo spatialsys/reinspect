@@ -81,7 +81,7 @@ const createReinspectStore = ({
     })
   ) as any) as EnhancedStore
 
-  store.registerHookedReducer = (reducer, initialState, reducerId) => {
+  store.registerHookedReducer = (reducer, initialState, reducerId, options) => {
     registeredReducers[reducerId] = reducer
 
     store.dispatch({
@@ -92,9 +92,11 @@ const createReinspectStore = ({
     return () => {
       delete registeredReducers[reducerId]
 
-      store.dispatch({
-        type: `${reducerId}/_teardown`
-      })
+      if (options.teardownOnUnmount) {
+        store.dispatch({
+          type: `${reducerId}/_teardown`
+        })
+      }
     }
   }
 
