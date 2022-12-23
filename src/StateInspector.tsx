@@ -103,10 +103,9 @@ const createReinspectStore = ({
   return store
 }
 
-export const StateInspector: React.FC<StateInspectorProps> = ({
-  children,
-  ...props
-}) => {
+export const StateInspector: React.FC<React.PropsWithChildren<
+  StateInspectorProps
+>> = ({ children, ...props }) => {
   if (!registered) {
     store = createReinspectStore(props)
     registered = true
