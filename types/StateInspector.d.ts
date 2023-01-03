@@ -3,5 +3,5 @@ import React from "react";
 interface StateInspectorProps extends EnhancerOptions {
     initialState?: any;
 }
-export declare const StateInspector: React.FC<StateInspectorProps>;
+export declare const StateInspector: React.FC<React.PropsWithChildren<StateInspectorProps>>;
 export {};
